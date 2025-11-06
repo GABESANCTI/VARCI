@@ -20,7 +20,7 @@ class CircuitoApp:
         self.impedancias = {} 
         self.z_counter = 1
         
-        # --- Configuração do Layout Principal (Frame Esquerdo e Direito) ---
+        # --- Configuração do Layout Principal 
         
         self.input_frame = ttk.Frame(root, padding="10")
         self.input_frame.grid(row=0, column=0, sticky=(tk.W, tk.N, tk.S), padx=10, pady=10)
@@ -37,8 +37,8 @@ class CircuitoApp:
     # --- SETUP DA INTERFACE DE ENTRADA (Item A) ---
     def _setup_input_widgets(self):
         # ... (O mesmo código do Passo 2 da resposta anterior para construir os widgets) ...
-        
-        # 1. ENTRADA DA FONTE -------------------------------------------
+
+        # 1. ENTRADA DA FONTE(Padrão 120V, 0°) -------------------------------------------
         fonte_group = ttk.LabelFrame(self.input_frame, text=" Fonte de Tensão (V_fonte) ")
         fonte_group.grid(row=0, column=0, pady=10, padx=5, sticky='ew')
         
@@ -76,6 +76,9 @@ class CircuitoApp:
         ttk.Button(z_base_group, text="Adicionar Z", command=self._add_impedance).grid(
             row=4, column=0, columnspan=2, pady=5)
 
+
+
+
         # 3. ASSOCIAÇÃO DE IMPEDÂNCIAS ----------------------------------
         z_assoc_group = ttk.LabelFrame(self.input_frame, text=" Associar (Série / Paralelo) ")
         z_assoc_group.grid(row=2, column=0, pady=10, padx=5, sticky='ew')
@@ -94,6 +97,10 @@ class CircuitoApp:
         ttk.Button(z_assoc_group, text="Paralelo", command=lambda: self._associate_impedances("paralelo")).grid(
             row=2, column=1, pady=5, padx=5)
 
+
+
+
+
         # 4. BOTÃO DE CÁLCULO FINAL -------------------------------------
         ttk.Label(self.input_frame, text="Nome da Z Total:").grid(row=3, column=0, padx=5, pady=2, sticky='w')
         self.z_total_name_entry = ttk.Entry(self.input_frame, width=15)
@@ -102,6 +109,9 @@ class CircuitoApp:
         
         ttk.Button(self.input_frame, text="⚙️ CALCULAR TUDO E PLOTAR", command=self._calculate_total_circuit).grid(
             row=5, column=0, pady=10, sticky='ew')
+
+
+
 
 
     # --- SETUP DA INTERFACE DE SAÍDA (Itens B, C, D, E, F, G) ---
@@ -134,7 +144,10 @@ class CircuitoApp:
         self.canvas_potencia.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 
-    # --- MÉTODOS DE LÓGICA (CHAMADOS PELOS BOTÕES) ---
+
+
+
+    # --- MÉTODOS DE LÓGICA (Function Call pelos  botões) ---
     
     def _add_impedance(self):
         # Lógica para criar Z base (Item B)
@@ -183,6 +196,7 @@ class CircuitoApp:
             messagebox.showerror("Erro de Associação", "Um ou mais nomes de impedância não foram encontrados.")
         except ValueError as e:
             messagebox.showerror("Erro de Entrada", str(e))
+
 
     def _calculate_total_circuit(self):
         # Lógica principal de cálculo (Itens C, D, E, F, G)
@@ -249,7 +263,7 @@ class CircuitoApp:
 
     # ITEM G: CONSTRUÇÃO DO DIAGRAMA FASORIAL
     def _plot_fasorial(self, V_fonte, I_total, nome_z_total):
-        # Implementação da plotagem do Diagrama Fasorial (igual à resposta anterior)
+ # Implementação da plotagem do Diagrama Fasorial 
         self.fig_fasor.clear()
         ax = self.fig_fasor.add_subplot(111, projection='polar') 
         
