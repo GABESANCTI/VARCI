@@ -1,3 +1,5 @@
+# complex_ac_calculator.py
+
 import cmath
 import math
 
@@ -41,9 +43,7 @@ def calcular_potencias(V_fonte, I_total, Z_total):
     Q_reativa = S_total.imag
     S_aparente = abs(S_total)
     
-    # O ângulo de Z_total é o ângulo da corrente subtraído do ângulo da tensão.
-    # FP = cos(theta), onde theta é o ângulo de Z_total ou o ângulo de S_total.
-    # Usamos cmath.phase(Z_total) para o ângulo da impedância em radianos.
+    # FP = cos(theta), onde theta é o ângulo de Z_total.
     fator_potencia = math.cos(cmath.phase(Z_total))
     
     return S_total, P_ativa, Q_reativa, S_aparente, fator_potencia
