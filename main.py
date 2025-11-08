@@ -1,15 +1,11 @@
-# ac_gui_app.py
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 import cmath
 import math
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-# Importa as funções de cálculo do outro arquivo
 try:
-    from complex_ac_calculator import Z_serie, Z_paralelo, obter_Z_complexa_direta, calcular_potencias
+    from ac import Z_serie, Z_paralelo, obter_Z_complexa_direta, calcular_potencias
 except ImportError:
     messagebox.showerror("Erro de Módulo", "O arquivo 'complex_ac_calculator.py' não foi encontrado. Certifique-se de que ele está no mesmo diretório.")
 
@@ -17,7 +13,7 @@ except ImportError:
 class CircuitoApp:
     def __init__(self, root):
         self.root = root
-        root.title("Analisador de Circuitos CA Monofásicos RLC")
+        root.title("VARCI- Análisador Monofásico de Circuitos AC")
         root.geometry("1100x700")
 
         self.impedancias = {} 
@@ -37,15 +33,15 @@ class CircuitoApp:
         self._setup_input_widgets()
         self._setup_output_widgets()
 
-    # --- SETUP DA INTERFACE DE ENTRADA (Item A: Entrada de Parâmetros) ---
+    # INTERFACE DE ENTRADA (Item A: Entrada de Parâmetros) ---
     def _setup_input_widgets(self):
-        # 1. ENTRADA DA FONTE -------------------------------------------
+        # 1. ENTRADA DA FONTE
         fonte_group = ttk.LabelFrame(self.input_frame, text=" Fonte de Tensão (V_fonte) ")
         fonte_group.grid(row=0, column=0, pady=10, padx=5, sticky='ew')
         
         ttk.Label(fonte_group, text="Módulo (V_rms):").grid(row=0, column=0, padx=5, pady=2, sticky='w')
         self.V_mag_entry = ttk.Entry(fonte_group, width=10)
-        self.V_mag_entry.insert(0, "220")  # Valor inicial coerente
+        self.V_mag_entry.insert(0, "120")  # Valor padrão inicial
         self.V_mag_entry.grid(row=0, column=1, padx=5, pady=2, sticky='e')
         
         ttk.Label(fonte_group, text="Ângulo (graus):").grid(row=1, column=0, padx=5, pady=2, sticky='w')
@@ -53,7 +49,7 @@ class CircuitoApp:
         self.V_phase_entry.insert(0, "0")
         self.V_phase_entry.grid(row=1, column=1, padx=5, pady=2, sticky='e')
 
-        # 2. CRIAÇÃO DE IMPEDÂNCIA BASE ---------------------------------
+        # 2. CRIAÇÃO DE IMPEDÂNCIA BASE 
         z_base_group = ttk.LabelFrame(self.input_frame, text=" Criar Z Base (R, XL, XC) ")
         z_base_group.grid(row=1, column=0, pady=10, padx=5, sticky='ew')
         
@@ -64,23 +60,23 @@ class CircuitoApp:
 
         ttk.Label(z_base_group, text="R (\u03A9):").grid(row=1, column=0, padx=5, pady=2, sticky='w')
         self.R_entry = ttk.Entry(z_base_group, width=10)
-        self.R_entry.insert(0, "5") # Valor inicial coerente
+        self.R_entry.insert(0, "5") # Valor padrão inicial
         self.R_entry.grid(row=1, column=1, padx=5, pady=2, sticky='e')
 
         ttk.Label(z_base_group, text="XL (\u03A9):").grid(row=2, column=0, padx=5, pady=2, sticky='w')
         self.XL_entry = ttk.Entry(z_base_group, width=10)
-        self.XL_entry.insert(0, "15") # Valor inicial coerente
+        self.XL_entry.insert(0, "15") # Valor padrão inicial
         self.XL_entry.grid(row=2, column=1, padx=5, pady=2, sticky='e')
 
         ttk.Label(z_base_group, text="XC (\u03A9):").grid(row=3, column=0, padx=5, pady=2, sticky='w')
         self.XC_entry = ttk.Entry(z_base_group, width=10)
-        self.XC_entry.insert(0, "10") # Valor inicial coerente
+        self.XC_entry.insert(0, "10") # Valor padrão inicial
         self.XC_entry.grid(row=3, column=1, padx=5, pady=2, sticky='e')
         
         ttk.Button(z_base_group, text="Adicionar Z", command=self._add_impedance).grid(
             row=4, column=0, columnspan=2, pady=5)
 
-        # 3. ASSOCIAÇÃO DE IMPEDÂNCIAS ----------------------------------
+        # 3. ASSOCIAÇÃO DE IMPEDÂNCIAS 
         z_assoc_group = ttk.LabelFrame(self.input_frame, text=" Associar (Série / Paralelo) ")
         z_assoc_group.grid(row=2, column=0, pady=10, padx=5, sticky='ew')
         
@@ -104,19 +100,24 @@ class CircuitoApp:
         self.z_total_name_entry.insert(0, "Z_Eq")
         self.z_total_name_entry.grid(row=4, column=0, padx=5, pady=2, sticky='ew')
         
-        ttk.Button(self.input_frame, text="⚙️ CALCULAR TUDO E PLOTAR", command=self._calculate_total_circuit).grid(
+        ttk.Button(self.input_frame, text=" CALCULAR TUDO E PLOTAR", command=self._calculate_total_circuit).grid(
             row=5, column=0, pady=10, sticky='ew')
 
+        #  Botao clear 
+        self.btn_clear = tk.Button(self.input_frame, text="LIMPAR TUDO", command=self._clear_all,
+                                   bg="#d9534f", fg="white", font=("Arial", 10, "bold"))
+        self.btn_clear.grid(row=6, column=0, pady=5, sticky='ew')
 
-    # --- SETUP DA INTERFACE DE SAÍDA ---
+
+    # INTERFACE DE SAÍDA
     def _setup_output_widgets(self):
-        # 1. Área de Texto para Resultados (B, C, D, E)
+        # 1. Área de Texto para Resultados 
         self.results_text = tk.Text(self.output_frame, height=15, width=60, wrap='word')
         self.results_text.grid(row=0, column=0, sticky='nsew', pady=5)
         self.output_frame.grid_rowconfigure(0, weight=1)
         self.output_frame.grid_columnconfigure(0, weight=1)
 
-        # 2. Área de Gráficos (F e G) - Abas
+        # 2. Área de Gráficos 
         self.notebook = ttk.Notebook(self.output_frame)
         self.notebook.grid(row=1, column=0, sticky='nsew', pady=10)
         self.output_frame.grid_rowconfigure(1, weight=3)
@@ -127,7 +128,7 @@ class CircuitoApp:
         self.notebook.add(self.fasor_tab, text="Diagrama Fasorial [G]")
         self.notebook.add(self.potencia_tab, text="Triângulo de Potências [F]")
 
-        # Inicialização do Matplotlib para o Fasorial
+        #  Matplotlib para o Fasorial
         self.fig_fasor = plt.Figure(figsize=(5, 4), dpi=100)
         self.canvas_fasor = FigureCanvasTkAgg(self.fig_fasor, master=self.fasor_tab)
         self.canvas_fasor.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
@@ -138,7 +139,7 @@ class CircuitoApp:
         self.canvas_potencia.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 
-    # --- MÉTODOS DE LÓGICA ---
+    #  MÉTODOS DE LÓGICA pseudo backend
     
     def _add_impedance(self):
         # Item B: Cálculo da Impedância Equivalente (Z base)
@@ -164,7 +165,7 @@ class CircuitoApp:
             messagebox.showerror("Erro de Entrada", f"Detalhe: {e}")
 
     def _associate_impedances(self, tipo):
-        # Item B: Cálculo da Impedância Equivalente (Série/Paralelo)
+        # Cálculo da Impedância Equivalente (Série/Paralelo)
         try:
             nomes = [n.strip() for n in self.assoc_names_entry.get().split(',')]
             nome_resultado = self.assoc_result_entry.get().strip()
@@ -190,7 +191,7 @@ class CircuitoApp:
             messagebox.showerror("Erro de Entrada", str(e))
 
     def _calculate_total_circuit(self):
-        # Executa os Itens C, D, E, F, G
+       
         try:
             V_mag = float(self.V_mag_entry.get() or 0)
             V_fase_rad = math.radians(float(self.V_phase_entry.get() or 0))
@@ -204,9 +205,9 @@ class CircuitoApp:
                  return
 
             # CÁLCULOS
-            I_total = V_fonte / Z_total # Item C: Cálculo da Corrente Total
+            I_total = V_fonte / Z_total # Cálculo da Corrente Total
             S_total, P_ativa, Q_reativa, S_aparente, fator_potencia = \
-                calcular_potencias(V_fonte, I_total, Z_total) # Itens D, E: Cálculo das Potências e FP
+                calcular_potencias(V_fonte, I_total, Z_total) # Cálculo das Potências e FP
 
             # ATUALIZAÇÃO DO DISPLAY DE RESULTADOS
             self.results_text.delete(1.0, tk.END)
@@ -221,13 +222,13 @@ class CircuitoApp:
             self.results_text.insert(tk.END, f"Fator de Potência (FP): {fator_potencia:.4f}\n")
             
             # GERAÇÃO DE GRÁFICOS
-            self._plot_fasorial(V_fonte, I_total, nome_z_total) # Item G
-            self._plot_potencias(P_ativa, Q_reativa, S_total, nome_z_total) # Item F
+            self._plot_fasorial(V_fonte, I_total, nome_z_total)
+            self._plot_potencias(P_ativa, Q_reativa, S_total, nome_z_total) 
             
         except Exception as e:
             messagebox.showerror("Erro de Cálculo", f"Ocorreu um erro: {e}")
 
-    # ITEM F: CONSTRUÇÃO DO TRIÂNGULO DE POTÊNCIAS
+    # TRIÂNGULO DE POTÊNCIAS
     def _plot_potencias(self, P_ativa, Q_reativa, S_total, nome_z_total):
         self.fig_potencia.clear()
         ax = self.fig_potencia.add_subplot(111)
@@ -248,7 +249,7 @@ class CircuitoApp:
         ax.legend(loc='upper right')
         self.canvas_potencia.draw()
 
-    # ITEM G: CONSTRUÇÃO DO DIAGRAMA FASORIAL (CORRIGIDO SEM RÓTULO DE ESCALA)
+    # DIAGRAMA FASORIAL 
     def _plot_fasorial(self, V_fonte, I_total, nome_z_total):
         self.fig_fasor.clear()
         ax = self.fig_fasor.add_subplot(111, projection='polar') 
@@ -268,7 +269,7 @@ class CircuitoApp:
         ax.plot([0, V_fase_rad], [0, V_mag], marker='o', color='blue', linewidth=2,
                 label=f'V_fonte: {V_mag:.2f}V  {math.degrees(V_fase_rad):.2f}°')
 
-        # 3. Plot Fasor I (escalado, mas o rótulo é o valor real)
+        # 3. Plot Fasor I
         i_label = f'I_total: {I_mag:.2f}A  {math.degrees(I_fase_rad):.2f}°'
 
         ax.plot([0, I_fase_rad], [0, I_plot_mag], marker='^', color='red', linewidth=2,
@@ -279,6 +280,43 @@ class CircuitoApp:
         ax.set_theta_zero_location("E")
         ax.set_theta_direction(-1)
         self.canvas_fasor.draw()
+
+    # BOTÃO DE LIMPAR TUDO
+    def _clear_all(self):
+        try:
+            # Limpa o dicionário de impedâncias e reseta contador
+            self.impedancias.clear()
+            self.z_counter = 1
+
+            # Limpa entradas do formulário retornando aos valores padrão
+            self.V_mag_entry.delete(0, tk.END); self.V_mag_entry.insert(0, "220")
+            self.V_phase_entry.delete(0, tk.END); self.V_phase_entry.insert(0, "0")
+            self.z_name_entry.delete(0, tk.END); self.z_name_entry.insert(0, f"Z{self.z_counter}")
+            self.R_entry.delete(0, tk.END); self.R_entry.insert(0, "5")
+            self.XL_entry.delete(0, tk.END); self.XL_entry.insert(0, "15")
+            self.XC_entry.delete(0, tk.END); self.XC_entry.insert(0, "10")
+            self.assoc_names_entry.delete(0, tk.END)
+            self.assoc_result_entry.delete(0, tk.END); self.assoc_result_entry.insert(0, "Z_Eq")
+            self.z_total_name_entry.delete(0, tk.END); self.z_total_name_entry.insert(0, "Z_Eq")
+
+            # Limpa área de resultados
+            self.results_text.delete(1.0, tk.END)
+
+            # Limpa os gráficos
+            try:
+                self.fig_fasor.clear()
+                self.canvas_fasor.draw()
+            except Exception:
+                pass
+            try:
+                self.fig_potencia.clear()
+                self.canvas_potencia.draw()
+            except Exception:
+                pass
+
+            messagebox.showinfo("Limpeza completa", "Todas as impedâncias e análises foram removidas.")
+        except Exception as e:
+            messagebox.showerror("Erro ao limpar", f"Ocorreu um erro ao limpar os dados: {e}")
 
 
 if __name__ == "__main__":
